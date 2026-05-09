@@ -1,1 +1,10 @@
 Hello world
+
+
+git clone https://github.com/crossten-alt/google-app-script-course-from-teacher.git
+cd google-app-script-course-from-teacher
+git remote add upstream https://github.com/roapple10/google-app-script-course
+git pull upstream main # 假設主分支叫做 main
+git add .
+git commit -m "更新了某些功能"
+git push origin main

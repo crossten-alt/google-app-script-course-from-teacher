@@ -187,7 +187,93 @@ function 自動建立月報表() {
     SpreadsheetApp.getUi().alert("❌ 錯誤：" + 錯誤.message);
   }
 }
+/**
+ * 自動建立每周報表工作表
+ * 說明：根據目前月份，自動建立當周的工作表（含標題與格式）
+ */
+function 自動建立周報表() {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var 員工表 = ss.getSheetByName("員工資料");
+    
+    if (!員工表) {
+      SpreadsheetApp.getUi().alert("❌ 找不到「員工資料」工作表，請先點選「初始化員工資料」。");
+      return;
+    }
 
+    // 1. 取得員工基本資料
+    var 最後一列 = 員工表.getLastRow();
+    if (最後一列 < 2) {
+      SpreadsheetApp.getUi().alert("⚠️ 員工資料中沒有數據。");
+      return;
+    }
+    // 取得資料 (姓名、部門、月薪分別在第 1, 2, 5 欄)
+    var 員工原始資料 = 員工表.getRange(2, 1, 最後一列 - 1, 5).getValues();
+
+    // 2. 準備新工作表
+    var 今天 = new Date();
+    // w 代表該年的第幾週 (Week of year)
+    var 表名 = Utilities.formatDate(今天, "Asia/Taipei", "yyyy年_第w週_薪資報表");
+
+
+    // 檢查工作表是否已存在
+    var 既有表 = ss.getSheetByName(表名);
+    if (既有表) {
+      SpreadsheetApp.getUi().alert("⚠️ 「" + 表名 + "」已存在，請先刪除舊表或更名。");
+      return;
+    }
+
+    var 新表 = ss.insertSheet(表名);
+
+    // 3. 設定標題列與格式
+    var 標題 = [["姓名", "部門", "基本周薪", "加班津貼", "應領金額"]];
+    新表.getRange("A1:E1").setValues(標題);
+    
+    var 標題範圍 = 新表.getRange("A1:E1");
+    標題範圍.setBackground("#34a853").setFontColor("#ffffff").setFontWeight("bold").setHorizontalAlignment("center");
+
+    // 4. 準備並寫入報表內容
+    var 報表內容 = [];
+    for (var i = 0; i < 員工原始資料.length; i++) {
+      var 姓名 = 員工原始資料[i][0];
+      var 部門 = 員工原始資料[i][1];
+      var 月薪 = 員工原始資料[i][4];
+      
+      // 📝 修改點：隨機產生 3~5 天的上班天數
+      var 實際上班天數 = Math.floor(Math.random() * 3) + 3; 
+      var 週薪 = Math.round((月薪 / 30) * 實際上班天數);
+      
+      // 示範加班費
+      var 加班費 = Math.floor(Math.random() * 1000) + 500; 
+      var 總計 = 週薪 + 加班費;
+      
+      // (選用) 你也可以把實際上班天數塞進陣列裡印出來看
+      // 注意：如果你加了這欄，上方的標題欄也要記得多加一個 "上班天數" 的欄位喔！
+      報表內容.push([姓名, 部門, 週薪, 加班費, 總計]);
+
+    }
+
+    // 寫入所有資料
+    新表.getRange(2, 1, 報表內容.length, 5).setValues(報表內容);
+
+    // 5. 最後修飾
+    新表.getRange(2, 3, 報表內容.length, 3).setNumberFormat("#,##0"); // 格式化金額
+    新表.setFrozenRows(1); // 凍結首列
+    
+    for (var j = 1; j <= 5; j++) {
+      新表.autoResizeColumn(j);
+      var 目前寬度 = 新表.getColumnWidth(j);
+      新表.setColumnWidth(j, 目前寬度 + 30); // 增加 30 像素緩衝
+    }
+
+    Logger.log("✅ 「" + 表名 + "」建立完成，共計 " + 報表內容.length + " 位員工。");
+    SpreadsheetApp.getUi().alert("✅ 「" + 表名 + "」建立完成！");
+
+  } catch (錯誤) {
+    Logger.log("❌ 錯誤：" + 錯誤.message);
+    SpreadsheetApp.getUi().alert("❌ 錯誤：" + 錯誤.message);
+  }
+}
 // ============================================================
 // 第三部分：讀寫儲存格
 // ============================================================
@@ -304,6 +390,31 @@ function 每日自動報告() {
     Logger.log("❌ 每日報告錯誤：" + 錯誤.message);
   }
 }
+
+/**
+ * 手動設定每週觸發器
+ * 說明：每週五自動執行「自動建立周報表」函式
+ */
+function 設定每週觸發器() {
+  ScriptApp.newTrigger("自動建立周報表")
+    .timeBased()
+    .everyWeeks(1) // 每 1 週
+    .onWeekDay(ScriptApp.WeekDay.FRIDAY) // 禮拜五
+    .atHour(17) // 下午 5 點
+    .create();
+
+  Logger.log("✅ 每週觸發器已設定（週五 17:00）");
+  SpreadsheetApp.getUi().alert(
+    "✅ 每週觸發器已設定！\n每週五 17:00 會自動執行建立周報表。",
+  );
+}
+
+
+
+
+
+
+
 
 /**
  * 刪除所有觸發器
@@ -466,7 +577,9 @@ function onOpen() {
     .addItem("📝 讀寫儲存格示範", "讀寫儲存格示範")
     .addSeparator()
     .addItem("📅 建立當月報表", "自動建立月報表")
+    .addItem("📅 建立當周報表", "自動建立周報表")
     .addItem("⏰ 設定每日觸發器", "設定每日觸發器")
+    .addItem("⏰ 設定每週觸發器", "設定每週觸發器")
     .addItem("🗑️ 刪除所有觸發器", "刪除所有觸發器")
     .addToUi();
 }

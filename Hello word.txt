@@ -8,3 +8,7 @@ git pull upstream main # 假設主分支叫做 main
 git add .
 git commit -m "更新了某些功能"
 git push origin main
+
+
+
+git remote add upstream https://github.com/roapple10/google-app-script-course.git; git pull upstream main -X ours; git add .; git commit -m "報表忘記填寫提醒信件"; git push origin main

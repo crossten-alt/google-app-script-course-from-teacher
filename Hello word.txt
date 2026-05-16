@@ -12,3 +12,25 @@ git push origin main
 
 
 git remote add upstream https://github.com/roapple10/google-app-script-course.git; git pull upstream main -X ours; git add .; git commit -m "報表忘記填寫提醒信件"; git push origin main
+
+
+
+------------------------------------------------------------------------
+懶人包：如果你想以後都省事
+你可以把「設定、抓取、推送」全部串在一起執行一次，確保環境變數都對了：
+
+新電腦要做 (只要做一次就好)
+git config --global user.email "你的Github 註冊Email信箱@example.com"
+git config --global user.name "你的github帳號名稱"
+
+第一步:
+git clone https://github.com/你的帳號/專案名稱.git
+
+第二步:
+cd 專案名稱
+
+第三步:
+git remote add upstream https://github.com/roapple10/google-app-script-course.git; git pull upstream main -X ours; git add .; git commit -m "Sync and update"; git push origin main
+
+小提醒：如果你的 main 分支在原作者那邊其實叫做 master，請記得把指令最後的 main 改成 master。目前的專案大多已改為 main。
+

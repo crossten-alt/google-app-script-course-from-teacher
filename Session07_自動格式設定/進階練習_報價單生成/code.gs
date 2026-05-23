@@ -24,15 +24,30 @@ function 生成報價單() {
 
     // ===== 報價單格式 =====
 
-    // 公司 Logo 區
-    sheet.getRange("A1:F1").merge();
-    sheet.getRange("A1").setValue("ABC 科技股份有限公司")
-      .setFontSize(20).setFontWeight("bold").setFontColor("#1a237e");
-    sheet.setRowHeight(1, 50);
+    // 左側大標題 (修正：只合併 A1:E1，避免與第二行衝突)
+    sheet.getRange("A1:E1").merge();
+    sheet.getRange("A1").setValue("會議與系統整合報價單")
+      .setFontSize(20)
+      .setFontWeight("bold")
+      .setFontColor("#1a237e")
+      .setHorizontalAlignment("left")
+      .setVerticalAlignment("middle");
 
-    sheet.getRange("A2:F2").merge();
+    // 右側置入新 Logo 圖片 (合併 F1:F2)
+    // 💡 修正提示：移除未定義的 logo 變數操作，改用 IMAGE 函數模式 1 (等比例自動縮放)
+    sheet.getRange("F1:F2").merge();
+    var logoUrl = "https://upload.wikimedia.org/wikipedia/zh/thumb/6/61/ONE_PIECE_Logo.svg/330px-ONE_PIECE_Logo.svg.png"; 
+    sheet.getRange("F1").setValue('=IMAGE("' + logoUrl + '", 1)')
+                        .setHorizontalAlignment("center")
+                        .setVerticalAlignment("middle");
+
+    // 公司聯絡資訊 (修正：改為合併 A2:E2，不侵犯 F2 的 Logo 空間)
+    sheet.getRange("A2:E2").merge();
     sheet.getRange("A2").setValue("台北市信義區信義路五段 7 號 ｜ Tel: 02-2345-6789 ｜ www.abc-tech.com")
-      .setFontSize(9).setFontColor("#666");
+      .setFontSize(9).setFontColor("#666").setVerticalAlignment("middle");
+      
+    sheet.setRowHeight(1, 40);
+    sheet.setRowHeight(2, 25);
 
     // 報價單標題
     sheet.getRange("A4:F4").merge();

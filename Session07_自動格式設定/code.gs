@@ -371,3 +371,4 @@ function onOpen() {
     .addItem("✨ 一鍵美化當前表", "一鍵美化")
     .addToUi();
 }
+

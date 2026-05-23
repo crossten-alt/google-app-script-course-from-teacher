@@ -174,5 +174,47 @@ function onOpen() {
     .createMenu("🤖 報價單系統")
     .addItem("📦 初始化報價資料", "初始化報價資料")
     .addItem("📋 生成報價單", "生成報價單")
+        .addItem("📋 寄給客戶", "showEmailDialog")
     .addToUi();
 }
+
+// 1. 主觸發函式：開啟自訂的 HTML 對話視窗
+function showEmailDialog() {
+  // 這裡設定 'dialog.html' 是為了相容您左側檔案名稱 dialog.html.html
+  // 如果您已經把檔案命名改成 dialog，這裡改回 'dialog' 即可
+  const htmlOutput = HtmlService.createHtmlOutputFromFile('dialog.html')
+      .setWidth(400)
+      .setHeight(300)
+      .setTitle('傳送 PDF 報表');
+  
+  SpreadsheetApp.getUi().showModalDialog(htmlOutput, '傳送設定');
+}
+
+// 2. 實際執行 PDF 轉換與寄信的函式（由前端 HTML 呼叫）
+function processPDFAndEmail(email) {
+  // 後端安全驗證信箱格式
+  if (!email || !validateEmail(email)) {
+    throw new Error('無效的信箱格式！');
+  }
+
+  // 取得當前試算表
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+
+  // 將試算表轉換為 PDF
+  var pdf = DriveApp.getFileById(spreadsheet.getId()).getAs('application/pdf');
+
+  // 設定信件內容與寄送
+  var subject = '您的 PDF 報表';
+  var body = '請查收附件，這是您請求的 Google 試算表 PDF 檔案。';
+  MailApp.sendEmail(email, subject, body, {attachments: [pdf]});
+  
+  // 執行成功後，回傳訊息給前端 HTML（前端會用 alert 顯示）
+  return "PDF 已成功寄送至：" + email;
+}
+
+// 信箱格式驗證輔助函式
+function validateEmail(email) {
+  var re = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
+  return re.test(email);
+}
+
